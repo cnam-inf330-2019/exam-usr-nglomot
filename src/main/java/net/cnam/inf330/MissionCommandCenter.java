@@ -5,17 +5,29 @@ import java.util.*;
 /**
  * Class for managing the rovers that are deployed on the Mars exploration grid.
  */
-public class MissionCommandCenter {
+public final class MissionCommandCenter {
     private int gridWidth;
     private int gridHeight;
     private List<Rover> rovers;
+    private int cheminRover;
 
     // TODO 1) Make MCC a singleton class
+    private static volatile MissionCommandCenter instance =null;
+    public static MissionCommandCenter getInstance() {
+        if (instance == null) {
+            synchronized (MissionCommandCenter.class) {
+                if (instance == null) {
+                    instance = new MissionCommandCenter();
+                }
+            }
+        }
+        return instance;
+    }
 
     /**
      * Create a MCC without a predefined grid size.
      */
-    public MissionCommandCenter() {
+    private MissionCommandCenter() {
         this.gridWidth = -1;
         this.gridHeight = -1;
         this.rovers = new ArrayList<>();
@@ -27,7 +39,7 @@ public class MissionCommandCenter {
      * @param gridWidth  The width (X axis) of the exploration grid
      * @param gridHeight The height (Y axis) of the exploration grid
      */
-    public MissionCommandCenter(int gridWidth, int gridHeight) {
+    private MissionCommandCenter(int gridWidth, int gridHeight) {
         this.gridWidth = gridWidth;
         this.gridHeight = gridHeight;
         this.rovers = new ArrayList<>();
@@ -54,6 +66,7 @@ public class MissionCommandCenter {
         Iterator<String> it = lines.iterator();
         while (it.hasNext()) {
             currentRoverId++;
+            cheminRover=0;
             String roverInitialStateData = it.next();
             String roverInstructionsData = it.next();
 
@@ -62,7 +75,7 @@ public class MissionCommandCenter {
             System.out.println("Rover " + currentRoverId + "'s final state : " + rover);
 
             double roverCoveragePercent = computeRoverCoveragePercent(rover);
-            System.out.println("Rover " + rover.getId() + "'s grid coverage : " + roverCoveragePercent + "");
+            System.out.println("Rover " + rover.getId() + "'s grid coverage : " + roverCoveragePercent + "%");
 
             outputLines.add(String.join(" ", Arrays.asList(Integer.toString(rover.getX()),
                     Integer.toString(rover.getY()), rover.getO().toString())));
@@ -97,14 +110,21 @@ public class MissionCommandCenter {
         } catch (InvalidRoverPositionException e) {
             // TODO 4) b) Don't deploy the rover if its initial position is invalid
             System.out.println("### WARNING : " + e.getMessage());
+            System.out.println("Terminated communication with rover " + roverId + ".");
+            return rover;
         }
 
         System.out.println("Controlling rover " + roverId + "...");
         for (Character c : roverInstructions.toCharArray()) {
             rover.processCommand(RoverCommand.valueOf(String.valueOf(c)));
+            cheminRover++;
             // TODO 4) a) Make the rover pull back if the move is invalid
+            try {
+                checkRoverPosition(rover);
+            } catch (InvalidRoverPositionException e) {
+                System.out.println("### WARNING : " + e.getMessage());
+            }
         }
-
         System.out.println("Terminated communication with rover " + roverId + ".");
         return rover;
     }
@@ -121,6 +141,13 @@ public class MissionCommandCenter {
                     "Position out of grid ! Communication signal weak.");
 
         // TODO 2) Throw an InvalidRoverPositionException if there is another rover on the rover's current position.
+        for(int i = 0; i<rovers.size(); i++){
+            if(rover.getX()==rovers.get(i).getX() & rover.getY()==rovers.get(i).getY()){
+                rover.moveBackward();
+                throw new InvalidRoverPositionException(rover,
+                        "Position not clear ! Initailizing pull back !");
+            }
+        }
     }
 
     /**
@@ -132,7 +159,9 @@ public class MissionCommandCenter {
      */
     public double computeRoverCoveragePercent(Rover rover) {
         // TODO 6) Compute the rover's grid coverage percentage
-        return 0d;
+        double gridArea = getGridHeight()*getGridWidth();
+
+        return cheminRover/gridArea*100;
     }
 
     /**

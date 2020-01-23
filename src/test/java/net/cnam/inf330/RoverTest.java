@@ -20,6 +20,7 @@ public class RoverTest {
     @BeforeClass // This method is run only once, before the test methods are run
     public static void initMissionCommandCenter() {
         // TODO 1) Initialize MCC singleton instance before the test methods are run
+        MissionCommandCenter.getInstance();
     }
 
     /**
@@ -29,7 +30,7 @@ public class RoverTest {
     // TODO 5) Change this test to check that the rover pulls back after moving out of the grid
     @Test
     public void testRoverOutOfGridException() {
-        MissionCommandCenter mcc = new MissionCommandCenter(1, 1);
+        MissionCommandCenter mcc = MissionCommandCenter.getInstance();
         Rover rover = new Rover(1, 0, 0, Orientation.N);
         mcc.addRover(rover);
         rover.moveForward();
@@ -44,10 +45,41 @@ public class RoverTest {
     /* TODO 3) 5) Write a new test for a scenario where 2 rovers collide at the same position on the grid
      *   and the second rover must pull back as a result
      */
+    @Test
+    public void testRoverCollisionException() {
+        MissionCommandCenter mcc = MissionCommandCenter.getInstance();
+
+        Rover rover1 = new Rover(1, 0, 1, Orientation.N);
+        mcc.addRover(rover1);
+
+        Rover rover2 = new Rover(2, 0, 0, Orientation.N);
+        mcc.addRover(rover2);
+        rover2.moveForward();
+
+        ThrowingRunnable tr = () -> mcc.checkRoverPosition(rover2);
+        assertThrows(InvalidRoverPositionException.class, tr);
+        assertNotEquals(rover1.getX()+rover1.getY(), rover2.getX()+rover2.getY());
+
+        mcc.clearRovers();
+    }
 
     /* TODO 5) Write a new test for a scenario where a rover is created at an invalid position
      *   and is not deployed as a result
      */
+    @Test
+    public void testRoverInitialPositionException() {
+        MissionCommandCenter mcc = MissionCommandCenter.getInstance();
+
+        Rover rover1 = new Rover(1, 0, 0, Orientation.N);
+        mcc.addRover(rover1);
+
+        Rover rover2 = new Rover(2, 0, 0, Orientation.N);
+        mcc.addRover(rover2);
+
+        ThrowingRunnable tr = () -> mcc.checkRoverPosition(rover2);
+        assertThrows(InvalidRoverPositionException.class, tr);
+        mcc.clearRovers();
+    }
 
     /**
      * Application must produce output data that matches the expected output after processing the input rover data.
