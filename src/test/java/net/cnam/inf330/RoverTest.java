@@ -20,6 +20,7 @@ public class RoverTest {
     @BeforeClass // This method is run only once, before the test methods are run
     public static void initMissionCommandCenter() {
         // TODO 1) Initialize MCC singleton instance before the test methods are run
+        // FIXME The idea was to store the instance in a member variable
         MissionCommandCenter.getInstance();
     }
 
@@ -38,6 +39,8 @@ public class RoverTest {
 
         ThrowingRunnable tr = () -> mcc.checkRoverPosition(rover);
         assertThrows(InvalidRoverPositionException.class, tr);
+
+        // FIXME Check that the rover has moved backwards
 
         mcc.clearRovers();
     }
@@ -58,12 +61,13 @@ public class RoverTest {
 
         ThrowingRunnable tr = () -> mcc.checkRoverPosition(rover2);
         assertThrows(InvalidRoverPositionException.class, tr);
+        // FIXME This test does not check that the rover moved backwards
         assertNotEquals(rover1.getX()+rover1.getY(), rover2.getX()+rover2.getY());
 
         mcc.clearRovers();
     }
 
-    /* TODO 5) Write a new test for a scenario where a rover is created at an invalid position
+    /* TODO FIXME 5) Write a new test for a scenario where a rover is created at an invalid position
      *   and is not deployed as a result
      */
     @Test
@@ -89,7 +93,7 @@ public class RoverTest {
         List<String> inputLines = Main.readResourceFile("rover_test_input.txt");
         List<String> expectedOutputLines = Main.readResourceFile("rover_test_output.txt");
 
-        // TODO 7) Test that processing the input lines produces an output that matches the expected output lines
+        // TODO FIXME 7) Test that processing the input lines produces an output that matches the expected output lines
         fail();
     }
 }

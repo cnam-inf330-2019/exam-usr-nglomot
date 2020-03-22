@@ -111,14 +111,14 @@ public final class MissionCommandCenter {
             // TODO 4) b) Don't deploy the rover if its initial position is invalid
             System.out.println("### WARNING : " + e.getMessage());
             System.out.println("Terminated communication with rover " + roverId + ".");
-            return rover;
+            return rover; // FIXME The rover should not be deployed, return null
         }
 
         System.out.println("Controlling rover " + roverId + "...");
         for (Character c : roverInstructions.toCharArray()) {
             rover.processCommand(RoverCommand.valueOf(String.valueOf(c)));
-            cheminRover++;
-            // TODO 4) a) Make the rover pull back if the move is invalid
+            cheminRover++; // FIXME This isn't the rover coverage, but just the number of moves
+            // TODO FIXME 4) a) Make the rover pull back if the move is invalid
             try {
                 checkRoverPosition(rover);
             } catch (InvalidRoverPositionException e) {
@@ -143,6 +143,8 @@ public final class MissionCommandCenter {
         // TODO 2) Throw an InvalidRoverPositionException if there is another rover on the rover's current position.
         for(int i = 0; i<rovers.size(); i++){
             if(rover.getX()==rovers.get(i).getX() & rover.getY()==rovers.get(i).getY()){
+                // FIXME The move backwards should be in the caller method, not here.
+                // FIXME This method only checks and throws errors when needed
                 rover.moveBackward();
                 throw new InvalidRoverPositionException(rover,
                         "Position not clear ! Initailizing pull back !");
@@ -160,6 +162,9 @@ public final class MissionCommandCenter {
     public double computeRoverCoveragePercent(Rover rover) {
         // TODO 6) Compute the rover's grid coverage percentage
         double gridArea = getGridHeight()*getGridWidth();
+        /* FIXME Wrong calculation because cheminRover isn't the number of distinct positions visited by the rover,
+            but simply the total number of moves made by the rover.
+         */
 
         return cheminRover/gridArea*100;
     }
